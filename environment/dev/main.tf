@@ -2,7 +2,7 @@ module "resource_group" {
   source                  = "../../azurerm_resource_group"
   for_each = var.resource_groups
   resource_group_location = each.value.name
-  resource_group_name     = var.value.location
+  resource_group_name     = each.value.location
 
 }
 
