@@ -57,7 +57,7 @@ jobs:
         working-directory: ./environment/dev
           
       - name: terraform plan    
-        run: terraform plan -out=tfplan
+        run: terraform plan
         working-directory: ./environment/dev
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -70,8 +70,8 @@ jobs:
         working-directory: ./environment/dev
 
       - name: terraform apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve tfplan
+     #    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply 
         working-directory: ./environment/dev
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
