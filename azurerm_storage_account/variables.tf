@@ -10,7 +10,7 @@ variable "resource_group_location" {
   
 }
 
-variable "azurerm_storage_account_name" {
+variable "storage_account_name" {
   description = "The name of the Azure Storage Account"
   type        = string
   
