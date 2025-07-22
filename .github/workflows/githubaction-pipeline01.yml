@@ -18,7 +18,7 @@ jobs:
   # This workflow contains a single job called "build"
   terraform_infra: 
     # The type of runner that the job will run on
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: cmd
