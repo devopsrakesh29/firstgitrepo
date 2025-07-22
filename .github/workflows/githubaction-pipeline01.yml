@@ -65,13 +65,13 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
-      - name: terraform show plan
-        run: terraform show tfplan
-        working-directory: ./environment/dev
+      # - name: terraform show plan
+      #   run: terraform show tfplan
+      #   working-directory: ./environment/dev
 
       - name: terraform apply
      #    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: terraform apply 
+        run: terraform apply --auto-approve 
         working-directory: ./environment/dev
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
