@@ -19,7 +19,8 @@ jobs:
 
       - name: Install tfsec
         run: |
-          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install.sh | sh
+          curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install.sh | sh
+
 
       - name: Run tfsec scan
         run: tfsec ./environment/dev
@@ -33,6 +34,9 @@ jobs:
 
       - name: Setup tflint
         uses: terraform-linters/setup-tflint@v1
+        with:
+          tflint_version: latest
+          
 
       - name: Run tflint
         run: |
