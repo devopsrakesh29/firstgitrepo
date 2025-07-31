@@ -19,11 +19,14 @@ jobs:
 
       - name: Install tfsec
         run: |
-          curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install.sh | sh
+          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
 
 
       - name: Run tfsec scan
-        run: tfsec ./environment/dev
+        run: |
+          tfsec ./environment/dev 
+
+  
 
 
   tflint-check:
@@ -41,7 +44,7 @@ jobs:
       - name: Run tflint
         run: |
           tflint --init
-          tflint ./environment/dev
+          tflint --chdir=./environment/dev
 
   terraform-plan:
     name: Terraform Plan + Comment
