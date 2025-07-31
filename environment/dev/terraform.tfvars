@@ -5,6 +5,10 @@ resource_groups = {
     name     = "githubaction-rg-01"
     location = "east US"
   }
+  rg02 = {
+    name     = "githubaction-rg-02"
+    location = "east US"
+  }
 }
 
 storage_accounts = {
