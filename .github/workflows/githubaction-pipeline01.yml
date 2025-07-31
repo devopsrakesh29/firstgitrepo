@@ -75,8 +75,8 @@ jobs:
 
       - name: Comment Plan on PR
         run: |
-          terraform show -no-color ./environment/dev/tfplan > plan.txt
-          gh pr comment ${{ github.event.pull_request.number }} --body-file plan.txt
+          terraform show -no-color tfplan  > plan.txt
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file plan.txt || echo "⚠️ Comment failed, but continuing..."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: ./environment/dev
