@@ -1,86 +1,75 @@
-# This is a basic workflow to help you get started with Actions
+name: PR-pipeline
 
-name: terraform-infra
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
-  # Allows you to run this workflow manually from the Actions tab
- #workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  terraform_infra: 
-    # The type of runner that the job will run on
+
+  tfsec-check:
+    name: Security Scan (tfsec)
     runs-on: ubuntu-latest
-    # defaults:
-    #   run:
-    #     shell: cmd
-
-    
-
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: terraform setup
-        # Sets up Terraform CLI in the GitHub Actions runner
+      - name: Install tfsec
+        run: |
+          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install.sh | sh
+
+      - name: Run tfsec scan
+        run: tfsec ./environment/dev
+
+
+  tflint-check:
+    name: Linting Check (tflint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup tflint
+        uses: terraform-linters/setup-tflint@v1
+
+      - name: Run tflint
+        run: |
+          tflint --init
+          tflint ./environment/dev
+
+  terraform-plan:
+    name: Terraform Plan + Comment
+    runs-on: ubuntu-latest
+    needs: [tfsec-check, tflint-check]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.7
-          
+          terraform_version: latest
 
-      # Runs a set of commands using the runners shell
-      - name: terraform init
-       
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
         run: terraform init
         working-directory: ./environment/dev
+
+      - name: Terraform Plan
+        run: terraform plan -no-color -out=tfplan
+        working-directory: ./environment/dev
+
+      - name: Comment Plan on PR
+        run: |
+          terraform show -no-color ./environment/dev/tfplan > plan.txt
+          gh pr comment ${{ github.event.pull_request.number }} --body-file plan.txt
         env:
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }} 
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-
-      - name: terraform fmt
-        run: terraform fmt 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: ./environment/dev
-
-      - name: terraform validate
-        run: terraform validate
-        working-directory: ./environment/dev
-          
-      - name: terraform plan    
-        run: terraform plan
-        working-directory: ./environment/dev
-        env:
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }} 
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-
-      # - name: terraform show plan
-      #   run: terraform show tfplan
-      #   working-directory: ./environment/dev
-
-      - name: terraform apply
-     #    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: terraform apply --auto-approve 
-        working-directory: ./environment/dev
-        env:
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }} 
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-    
-  
-
-
